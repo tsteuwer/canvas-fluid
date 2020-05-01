@@ -1,0 +1,19 @@
+{
+  "name": "canvas-fluid",
+  "version": "1.0.0",
+  "description": "Testing fluid dynamics",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tsteuwer/canvas-fluid.git"
+  },
+  "author": "Troy Steuwer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tsteuwer/canvas-fluid/issues"
+  },
+  "homepage": "https://github.com/tsteuwer/canvas-fluid#readme"
+}
