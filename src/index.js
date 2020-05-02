@@ -10,6 +10,7 @@
 
 	class Fluid {
 		constructor(dt, diffusion, viscocity, N, iterations) {
+			this.loop = 0;
 			this.size = N;
 			this.dt = dt;
 			this.diff = diffusion;
@@ -81,10 +82,10 @@
 									x[IX(i - 1, j)] +
 									x[IX(i, j + 1)] +
 									x[IX(i, j - 1)])) *
-						cRecip;
+							cRecip;
 				}
 			}
-			set_bnd(b, x);
+			set_bnd(b, x, N);
 		}
 	}
 
@@ -118,9 +119,9 @@
 			}
 		}
 	
-		set_bnd(0, div);
-		set_bnd(0, p);
-		lin_solve(0, p, div, 1, 6);
+		set_bnd(0, div, N);
+		set_bnd(0, p, N);
+		lin_solve(0, p, div, 1, 6, iter, N);
 	
 		for (let j = 1; j < N - 1; j++) {
 			for (let i = 1; i < N - 1; i++) {
@@ -129,8 +130,8 @@
 			}
 		}
 	
-		set_bnd(1, velocX);
-		set_bnd(2, velocY);
+		set_bnd(1, velocX, N);
+		set_bnd(2, velocY, N);
 	}
 
 	function advect(b, d, d0, velocX, velocY, dt, N) {
@@ -140,16 +141,17 @@
 		let dty = dt * (N - 2);
 	
 		let s0, s1, t0, t1;
-		let tmp1, tmp2, tmp3, x, y;
+		let tmp1, tmp2, x, y;
 	
 		let Nfloat = N;
 		let ifloat, jfloat;
-		let i, j, k;
+		let i, j;
 	
 		for (j = 1, jfloat = 1; j < N - 1; j++, jfloat++) {
 			for (i = 1, ifloat = 1; i < N - 1; i++, ifloat++) {
-				tmp1 = dtx * velocX[IX(i, j)];
-				tmp2 = dty * velocY[IX(i, j)];
+				let index = IX(i, j);
+				tmp1 = dtx * velocX[index];
+				tmp2 = dty * velocY[index];
 				x = ifloat - tmp1;
 				y = jfloat - tmp2;
 	
@@ -161,24 +163,56 @@
 				if (y > Nfloat + 0.5) y = Nfloat + 0.5;
 				j0 = Math.floor(y);
 				j1 = j0 + 1.0;
+
+				if (i1 > N) {
+					i1 = N;
+				}
+
+				if (i0 > N) {
+					i0 = N
+				}
+
+				if (j1 > N) {
+					j1 = N;
+				}
+
+				if (j0 > N) {
+					j0 = N;
+				}
 	
 				s1 = x - i0;
 				s0 = 1.0 - s1;
 				t1 = y - j0;
 				t0 = 1.0 - t1;
+
 	
 				let i0i = parseInt(i0);
 				let i1i = parseInt(i1);
 				let j0i = parseInt(j0);
 				let j1i = parseInt(j1);
-	
+
+				if (i0i >= N) {
+					i0i = N - 1;
+				}
+
+				if (i1i >= N) {
+					i1i = N - 1;
+				}
+
+				if (j0i >= N) {
+					j0i = N - 1;
+				}
+				if (j1i >= N) {
+					j1i = N - 1;
+				}
+
 				d[IX(i, j)] =
 					s0 * (t0 * d0[IX(i0i, j0i)] + t1 * d0[IX(i0i, j1i)]) +
 					s1 * (t0 * d0[IX(i1i, j0i)] + t1 * d0[IX(i1i, j1i)]);
 			}
 		}
 	
-		set_bnd(b, d);
+		set_bnd(b, d, N);
 	}
 	
 
@@ -197,14 +231,14 @@
 	/***** PUT IT ALL TOGETHER *****/
 	const canvas = document.getElementById('canvas');
 	const ctx = canvas.getContext('2d');
-	const N = 60;
+	const N = 256;
 	ctx.beginPath();
 	ctx.fillStyle = 'black';
 	ctx.fillRect(0, 0, N, N);
 
 	console.warn('Starting...');
 
-	const fluid = new Fluid(0.2, 0, 0.00001, N, 16);
+	const fluid = new Fluid(0.2, 0, 0.0000001, N, 5);
 	let lastMouseX = 0;
 	let lastMouseY = 0;
 	canvas.addEventListener('mousedown', () => {
@@ -225,21 +259,14 @@
 	function moveListener(e) {
 		const {x, y} = getMousePos(canvas, e);
 		fluid.addDensity(x, y, 5);
-		console.warn(x - lastMouseX, y - lastMouseY);
 		fluid.addVelcity(x, y, x - lastMouseX, y - lastMouseY);
 		lastMouseX = x;
 		lastMouseY = y;
 	}
 
-	var doom = 0;
 	requestAnimationFrame(function run() {
 		fluid.step();
 		fluid.render(ctx);
 		requestAnimationFrame(run);
-		doom++;
-
-		if (doom == 100) {
-			console.warn(fluid);
-		}
 	});
 })();
