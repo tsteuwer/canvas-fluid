@@ -7,6 +7,7 @@
 	/*********
 	 * MATHS *
 	 ********/
+	var SCALE = 6;
 
 	class Fluid {
 		constructor(dt, diffusion, viscocity, N, iterations) {
@@ -57,9 +58,10 @@
 		render(context) {
 			for (let i = 0; i < this.size; i++) {
 				for ( let j = 0; j < this.size; j++) {
-					const d = this.density[IX(i, j)];
+					let index = IX(i, j);
+					const d = this.density[index];
 					context.fillStyle = `rgba(255, 255, 255, ${d})`;
-					context.fillRect(i, j, 1, 1);
+					context.fillRect(i * SCALE, j * SCALE, 1 * SCALE, 1 * SCALE);
 				}
 			}
 		}
@@ -231,14 +233,16 @@
 	/***** PUT IT ALL TOGETHER *****/
 	const canvas = document.getElementById('canvas');
 	const ctx = canvas.getContext('2d');
-	const N = 256;
+	const N = 60;
+	canvas.width = N * SCALE;
+	canvas.height = N * SCALE;
 	ctx.beginPath();
 	ctx.fillStyle = 'black';
-	ctx.fillRect(0, 0, N, N);
+	ctx.fillRect(0, 0, N * SCALE, N * SCALE);
 
 	console.warn('Starting...');
 
-	const fluid = new Fluid(0.2, 0, 0.0000001, N, 5);
+	const fluid = new Fluid(0.1, 0, 0, N, 4);
 	let lastMouseX = 0;
 	let lastMouseY = 0;
 	canvas.addEventListener('mousedown', () => {
@@ -251,14 +255,14 @@
 	function getMousePos(canvas, evt) {
 		var rect = canvas.getBoundingClientRect();
 		return {
-			x: evt.clientX - rect.left,
-			y: evt.clientY - rect.top
+			x: Math.floor((evt.clientX - rect.left) / SCALE),
+			y: Math.floor((evt.clientY - rect.top) / SCALE)
 		};
 	}
 
 	function moveListener(e) {
 		const {x, y} = getMousePos(canvas, e);
-		fluid.addDensity(x, y, 5);
+		fluid.addDensity(x, y, 2);
 		fluid.addVelcity(x, y, x - lastMouseX, y - lastMouseY);
 		lastMouseX = x;
 		lastMouseY = y;
