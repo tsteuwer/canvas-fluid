@@ -55,12 +55,12 @@
 	    advect(0, this.density, this.s, this.Vx, this.Vy, this.dt, this.size);
 		}
 
-		render(context) {
+		renderDensity(context) {
 			for (let i = 0; i < this.size; i++) {
 				for ( let j = 0; j < this.size; j++) {
 					let index = IX(i, j);
 					const d = this.density[index];
-					context.fillStyle = `rgba(255, 255, 255, ${d})`;
+					context.fillStyle = `rgba(${Math.floor(d * 255)}, ${Math.floor(d * 255)}, ${Math.floor(d * 255)}, 1)`;
 					context.fillRect(i * SCALE, j * SCALE, 1 * SCALE, 1 * SCALE);
 				}
 			}
@@ -243,8 +243,8 @@
 	console.warn('Starting...');
 
 	const fluid = new Fluid(0.1, 0, 0, N, 4);
-	let lastMouseX = 0;
-	let lastMouseY = 0;
+	let lastMouseX = null;
+	let lastMouseY = null;
 	canvas.addEventListener('mousedown', () => {
 		canvas.addEventListener('mousemove', moveListener)
 	});
@@ -262,15 +262,21 @@
 
 	function moveListener(e) {
 		const {x, y} = getMousePos(canvas, e);
-		fluid.addDensity(x, y, 2);
+
+		if (lastMouseX == null) {
+			lastMouseX = x;
+			lastMouseY = y;
+		}
+		fluid.addDensity(x, y, 1);
 		fluid.addVelcity(x, y, x - lastMouseX, y - lastMouseY);
+
 		lastMouseX = x;
 		lastMouseY = y;
 	}
 
 	requestAnimationFrame(function run() {
 		fluid.step();
-		fluid.render(ctx);
+		fluid.renderDensity(ctx);
 		requestAnimationFrame(run);
 	});
 })();
